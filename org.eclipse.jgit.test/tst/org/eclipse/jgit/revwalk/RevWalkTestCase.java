@@ -140,4 +140,8 @@ public abstract class RevWalkTestCase extends RepositoryTestCase {
 	protected void assertCommit(RevCommit exp, RevCommit act) {
 		assertSame(exp, act);
 	}
+
+	protected Repository getTestRepository() {
+		return util.getRepository();
+	}
 }
