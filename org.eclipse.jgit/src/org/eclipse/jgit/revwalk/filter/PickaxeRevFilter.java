@@ -133,7 +133,9 @@ public class PickaxeRevFilter extends RevFilter {
 
 			currentCommitTreeParser.reset();
 
-			System.out.println("Testing parent " + parentCommit);
+			walker.parseBody(parentCommit);
+			System.out.println("Testing parent " + parentCommit + " "
+					+ parentCommit.getShortMessage());
 			boolean findPatternInDiffInParent = findPatternInDiff(
 					parentCommitTreeParser, currentCommitTreeParser);
 			if (findPatternInDiffInParent)

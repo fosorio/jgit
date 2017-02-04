@@ -43,11 +43,17 @@
 
 package org.eclipse.jgit.revwalk;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -308,6 +314,7 @@ public class RevWalkFilterTest extends RevWalkTestCase {
 				tree(file("test.txt", blob("This is a test"))));
 		System.out.println("c1 " + c1);
 
+
 		final RevCommit c2 = commit(
 				tree(file("test2.txt", blob("This is a second test"))), c1);
 		System.out.println("c2 " + c2);
@@ -345,6 +352,7 @@ public class RevWalkFilterTest extends RevWalkTestCase {
 		// @formatter:on
 
 		RevCommit head = c8;
+		getTestRepository().update("master", head);
 
 		testPickaxeWalk(head, "third", c5, c3);
 		testPickaxeWalk(head, "second", c3, c2);
@@ -365,18 +373,45 @@ public class RevWalkFilterTest extends RevWalkTestCase {
 			throws Exception, MissingObjectException,
 			IncorrectObjectTypeException, IOException {
 		System.out.println("\n\nmatching pattern " + pattern);
+		for (RevCommit c : expectedCommits) {
+			System.out.println(c.name());
+		}
+
+		compareAgainstGitCli(pattern, expectedCommits);
+
 		rw.reset();
 
 		RevFilter filter = PickaxeRevFilter.create(pattern, false,
-					getTestRepository());
+				getTestRepository().getRepository());
 			assertNotNull(filter);
 			rw.setRevFilter(filter);
 			markStart(head);
 
 		for (RevCommit commit : expectedCommits) {
+			System.out.println(commit.getId());
 			assertCommit(commit, rw.next());
 		}
 			assertNull(rw.next());
+	}
+
+	private void compareAgainstGitCli(String pattern,
+			RevCommit[] expectedCommits) throws IOException {
+
+		Process exec = Runtime.getRuntime()
+				.exec("C:\\Users\\fo05509\\.babun\\cygwin\\bin\\git -C "
+						+ getTestRepository().getRepository().getDirectory()
+						+ "\\..\\"
+						+ " log --oneline --no-abbrev -m -S'" + pattern + "'");
+
+		List<String> commitsCliSha1 = new BufferedReader(
+				new InputStreamReader(exec.getInputStream())).lines()
+						.map(s -> s.split(" ")[0]).distinct()
+						.collect(Collectors.toList());
+		List<String> expectedCommitsSha1 = Arrays.stream(expectedCommits)
+				.map(c -> c.name())
+				.collect(Collectors.toList());
+		assertEquals(expectedCommitsSha1, commitsCliSha1);
+
 	}
 
 	private static class MyAll extends RevFilter {

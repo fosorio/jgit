@@ -141,7 +141,7 @@ public abstract class RevWalkTestCase extends RepositoryTestCase {
 		assertSame(exp, act);
 	}
 
-	protected Repository getTestRepository() {
-		return util.getRepository();
+	protected TestRepository<Repository> getTestRepository() {
+		return util;
 	}
 }
