@@ -114,8 +114,6 @@ public class PickaxeRevFilter extends RevFilter {
 
 		ObjectReader objectReader = walker.getObjectReader();
 
-		System.out.println("Testing " + cmit); //$NON-NLS-1$
-
 		CanonicalTreeParser currentCommitTreeParser = new CanonicalTreeParser(
 				null,
 				objectReader, cmit.getTree().getId());
@@ -134,8 +132,9 @@ public class PickaxeRevFilter extends RevFilter {
 			currentCommitTreeParser.reset();
 
 			walker.parseBody(parentCommit);
-			System.out.println("Testing parent " + parentCommit + " "
-					+ parentCommit.getShortMessage());
+			System.out.println("Testing " + cmit.getShortMessage() //$NON-NLS-1$
+					+ " against parent " + parentCommit.getShortMessage());
+
 			boolean findPatternInDiffInParent = findPatternInDiff(
 					parentCommitTreeParser, currentCommitTreeParser);
 			if (findPatternInDiffInParent)
@@ -171,11 +170,21 @@ public class PickaxeRevFilter extends RevFilter {
 		int oldOcurrences = countOcurrences(entry.getOldId());
 		int newOcurrences = countOcurrences(entry.getNewId());
 
+		boolean foundMatch = oldOcurrences != newOcurrences;
+
+		if (foundMatch)
+			debugMatch(entry, oldOcurrences, newOcurrences);
+		return foundMatch;
+	}
+
+	private void debugMatch(DiffEntry entry, int oldOcurrences,
+			int newOcurrences) {
 		System.out.println("\tfor entry " + entry);
 		System.out
-				.println("\tparent " + entry.getOldId() + ": " + oldOcurrences);
-		System.out.println("\tnew: " + entry.getNewId() + ": " + newOcurrences);
-		return oldOcurrences != newOcurrences;
+				.println("\tparent " + entry.getOldPath() + ": "
+						+ oldOcurrences);
+		System.out
+				.println("\tnew: " + entry.getNewPath() + ": " + newOcurrences);
 	}
 
 	private int countOcurrences(AbbreviatedObjectId id)
