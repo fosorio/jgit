@@ -428,6 +428,29 @@ public class TestRepository<R extends Repository> {
 	 */
 	public RevCommit commit(final int secDelta, final RevTree tree,
 			final RevCommit... parents) throws Exception {
+		return commit(secDelta, tree, "", parents);
+	}
+
+	/**
+	 * Create a new commit.
+	 * <p>
+	 * The author and committer identities are stored using the current
+	 * timestamp, after being incremented by {@code secDelta}.
+	 *
+	 * @param secDelta
+	 *            number of seconds to advance {@link #tick(int)} by.
+	 * @param tree
+	 *            the root tree for the commit.
+	 * @param message
+	 *            the commit message
+	 * @param parents
+	 *            zero or more parents of the commit.
+	 * @return the new commit.
+	 * @throws Exception
+	 */
+	public RevCommit commit(final int secDelta, final RevTree tree,
+			final String message,
+			final RevCommit... parents) throws Exception {
 		tick(secDelta);
 
 		final org.eclipse.jgit.lib.CommitBuilder c;
@@ -437,7 +460,7 @@ public class TestRepository<R extends Repository> {
 		c.setParentIds(parents);
 		c.setAuthor(new PersonIdent(defaultAuthor, getDate()));
 		c.setCommitter(new PersonIdent(defaultCommitter, getDate()));
-		c.setMessage("");
+		c.setMessage(message);
 		ObjectId id;
 		try (ObjectInserter ins = inserter) {
 			id = ins.insert(c);
@@ -1234,4 +1257,5 @@ public class TestRepository<R extends Repository> {
 			return new CommitBuilder(this);
 		}
 	}
+
 }
