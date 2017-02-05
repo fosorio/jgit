@@ -62,7 +62,9 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 
 /**
  * Matches only commits whose diffs don't match in the number of occurrences of
@@ -118,6 +120,8 @@ public class PickaxeRevFilter extends RevFilter {
 			throws StopWalkException, MissingObjectException,
 			IncorrectObjectTypeException, IOException {
 
+		cmit = walker.parseCommit(cmit);
+
 		ObjectReader objectReader = walker.getObjectReader();
 
 		CanonicalTreeParser currentCommitTreeParser = new CanonicalTreeParser(
@@ -127,7 +131,8 @@ public class PickaxeRevFilter extends RevFilter {
 		// Root commit
 		if (cmit.getParentCount() == 0) {
 			System.out.println("Testing root ");
-			return findPatternInDiff(null, currentCommitTreeParser);
+			return findPatternInDiff(new EmptyTreeIterator(),
+					currentCommitTreeParser);
 		}
 
 		for (RevCommit parentCommit : cmit.getParents()) {
@@ -138,24 +143,29 @@ public class PickaxeRevFilter extends RevFilter {
 			currentCommitTreeParser.reset();
 
 			walker.parseBody(parentCommit);
-			System.out.println("Testing " + cmit.getShortMessage() //$NON-NLS-1$
-					+ " against parent " + parentCommit.getShortMessage());
+			// System.out.println("Testing " + cmit.getShortMessage()
+			// //$NON-NLS-1$
+			// + " against parent " + parentCommit.getShortMessage());
 
 			boolean findPatternInDiffInParent = findPatternInDiff(
 					parentCommitTreeParser, currentCommitTreeParser);
 			if (findPatternInDiffInParent)
+			{
+				System.out.println("While testing " + cmit //$NON-NLS-1$
+						+ " against parent " + parentCommit + "\n");
 				return true;
+			}
 		}
 
 		return false;
 	}
 
 	private boolean findPatternInDiff(
-			CanonicalTreeParser parentCommitTreeParser,
-			CanonicalTreeParser currentCommitTreeParser)
+			AbstractTreeIterator parentCommitTreeParser,
+			AbstractTreeIterator currentCommitTreeParser)
 			throws MissingObjectException, IOException {
 		try (Git git = new Git(repo)) {
-			List<DiffEntry> diffs = git.diff()
+			List<DiffEntry> diffs = git.diff().setShowNameAndStatusOnly(true)
 					.setNewTree(currentCommitTreeParser)
 					.setOldTree(parentCommitTreeParser).call();
 			for (DiffEntry entry : diffs) {
