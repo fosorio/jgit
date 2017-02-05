@@ -45,6 +45,8 @@ package org.eclipse.jgit.revwalk.filter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -72,6 +74,8 @@ public class PickaxeRevFilter extends RevFilter {
 	private String pattern;
 
 	private boolean regex;
+
+	private Pattern regexPattern;
 
 	private Repository repo;
 
@@ -105,6 +109,8 @@ public class PickaxeRevFilter extends RevFilter {
 		this.pattern = pattern;
 		this.regex = regex;
 		this.repo = repo;
+		if (regex)
+			this.regexPattern = Pattern.compile(pattern);
 	}
 
 	@Override
@@ -203,8 +209,14 @@ public class PickaxeRevFilter extends RevFilter {
 	}
 
 	private int countPattern(String str) {
-		// TODO Auto-generated method stub
-		return 0;
+		Matcher matcher = regexPattern.matcher(str);
+		int from = 0;
+		int count = 0;
+		while (matcher.find(from)) {
+			count++;
+			from = matcher.start() + 1;
+		}
+		return count;
 	}
 
 	private int countSubstring(String str) {
