@@ -66,6 +66,7 @@ import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.AuthorRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitterRevFilter;
 import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
+import org.eclipse.jgit.revwalk.filter.PickaxeRevFilter;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.filter.AndTreeFilter;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;
@@ -142,6 +143,11 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	@Option(name = "--grep")
 	void addCMessageRevFilter(String msg) {
 		revLimiter.add(MessageRevFilter.create(msg));
+	}
+
+	@Option(name = "-S", usage = "usage_pickaxe")
+	void addPickaxeRevFilter(final String pattern) {
+		revLimiter.add(PickaxeRevFilter.create(pattern, false, db));
 	}
 
 	@Option(name = "--max-count", aliases = "-n", metaVar = "metaVar_n")
