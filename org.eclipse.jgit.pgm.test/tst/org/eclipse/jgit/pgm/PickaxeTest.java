@@ -42,9 +42,10 @@
  */
 package org.eclipse.jgit.pgm;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -71,7 +72,7 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 
 		String[] result = execute("git log -S test2");
 
-		assertTrue(getCommitMessage(result).equals("commit2"));
+		assertResultEqualsCommits(result, "commit2");
 	}
 
 	@Test
@@ -81,13 +82,22 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 		commitFiles("commit2", writeTrashFile("file2", "test2"));
 		commitFiles("commit3", writeTrashFile("file3", "test3"));
 
-		String[] result = execute("git log -S test\\d+");
+		String[] result = execute("git log --pickaxe-regex -S test\\\\d+");
 
-		assertTrue(getCommitMessage(result).equals("commit2"));
+		assertResultEqualsCommits(result, "commit3", "commit2");
 	}
 
-	private Object getCommitMessage(String[] execute) {
-		return execute[4].trim();
+	private void assertResultEqualsCommits(String[] result, String... commits) {
+		assertEquals(toString(getCommitMessages(result)),
+				toString(commits));
+	}
+
+	private String[] getCommitMessages(String[] execute) {
+		execute = Arrays.copyOfRange(execute, 0, execute.length - 1);
+		String[] result = new String[execute.length / 6];
+		for (int i = 0; i < execute.length / 6; i++)
+			result[i] = execute[6 * i + 4];
+		return result;
 	}
 
 	private void commitFiles(String message, File... files)

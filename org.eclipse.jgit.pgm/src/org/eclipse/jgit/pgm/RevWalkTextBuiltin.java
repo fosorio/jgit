@@ -88,6 +88,9 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	@Option(name = "--all")
 	boolean all = false;
 
+	@Option(name = "--pickaxe-regex")
+	boolean pickaxeRegex = false;
+
 	char[] outbuffer = new char[Constants.OBJECT_ID_LENGTH * 2];
 
 	private final EnumSet<RevSort> sorting = EnumSet.noneOf(RevSort.class);
@@ -147,7 +150,7 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 
 	@Option(name = "-S", usage = "usage_pickaxe")
 	void addPickaxeRevFilter(final String pattern) {
-		revLimiter.add(PickaxeRevFilter.create(pattern, false, db));
+		revLimiter.add(PickaxeRevFilter.create(pattern, pickaxeRegex, db));
 	}
 
 	@Option(name = "--max-count", aliases = "-n", metaVar = "metaVar_n")
