@@ -76,15 +76,22 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 	}
 
 	@Test
-	public void regexTest() throws Exception {
+	public void basicRegexTest() throws Exception {
 		// Write all files
 		commitFiles("commit1", writeTrashFile("file1", "test"));
 		commitFiles("commit2", writeTrashFile("file2", "test2"));
 		commitFiles("commit3", writeTrashFile("file3", "test3"));
 
-		String[] result = execute("git log --pickaxe-regex -S test\\\\d+");
+		// test\d+ should match only numbers (test2 & test3)
+		assertResultEqualsCommits(
+				execute("git log --pickaxe-regex -S test\\\\d+"), "commit3",
+				"commit2");
 
-		assertResultEqualsCommits(result, "commit3", "commit2");
+		// same test, but different order of parameters
+		assertResultEqualsCommits(
+				execute("git log -S test\\\\d+ --pickaxe-regex"), "commit3",
+				"commit2");
+
 	}
 
 	private void assertResultEqualsCommits(String[] result, String... commits) {

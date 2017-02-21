@@ -88,6 +88,9 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	@Option(name = "--all")
 	boolean all = false;
 
+	@Option(name = "-S", usage = "usage_pickaxe")
+	String pickaxePattern;
+
 	@Option(name = "--pickaxe-regex")
 	boolean pickaxeRegex = false;
 
@@ -148,9 +151,9 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 		revLimiter.add(MessageRevFilter.create(msg));
 	}
 
-	@Option(name = "-S", usage = "usage_pickaxe")
-	void addPickaxeRevFilter(final String pattern) {
-		revLimiter.add(PickaxeRevFilter.create(pattern, pickaxeRegex, db));
+	void addPickaxeRevFilter() {
+		revLimiter
+				.add(PickaxeRevFilter.create(pickaxePattern, pickaxeRegex, db));
 	}
 
 	@Option(name = "--max-count", aliases = "-n", metaVar = "metaVar_n")
@@ -159,6 +162,7 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	/** {@inheritDoc} */
 	@Override
 	protected void run() throws Exception {
+		initOptions();
 		walk = createWalk();
 		for (RevSort s : sorting)
 			walk.sort(s, true);
@@ -214,6 +218,10 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 							CLIText.get().timeInMilliSeconds,
 							Long.valueOf(end - start)));
 		}
+	}
+
+	private void initOptions() {
+		addPickaxeRevFilter();
 	}
 
 	/**
