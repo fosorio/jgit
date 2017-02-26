@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.filter.PickaxeRevFilter;
@@ -95,6 +96,22 @@ public class RevWalkPickaxeFilterTest extends RevWalkTestCase {
 	}
 
 	@Test
+	public void testRegexMultiline() throws Exception {
+		final RevCommit c1 = commit("c1", tree(file("test.txt",
+				blob("This is a test\nThis is another line"))));
+		getTestRepository().update(Constants.MASTER, c1);
+		RevCommit head = c1;
+
+		logCommits();
+
+		Repository repo = getTestRepository().getRepository();
+		testPickaxeWalk(repo, head, "(?s)This.*test", c1);
+		testPickaxeWalk(repo, head, "(?s)This.*line", c1);
+		testPickaxeWalk(repo, head, "(?s)Not This.*line");
+
+	}
+
+	@Test
 	public void testLargeReporsitory() throws Exception {
 		FileRepository largeRepository = new FileRepository(
 				new File("../.git"));
@@ -115,6 +132,7 @@ public class RevWalkPickaxeFilterTest extends RevWalkTestCase {
 		}
 
 	}
+
 
 	private void testPickaxeWalk(Repository repo, RevCommit head,
 			String pattern,

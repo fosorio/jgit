@@ -189,6 +189,7 @@ public class CLIText extends TranslationBundle {
 	/***/ public String invalidHttpProxyOnlyHttpSupported;
 	/***/ public String invalidRecurseSubmodulesMode;
 	/***/ public String invalidUntrackedFilesMode;
+	/***/ public String invalidRegex;
 	/***/ public String jgitVersion;
 	/***/ public String lfsNoAccessKey;
 	/***/ public String lfsNoSecretKey;

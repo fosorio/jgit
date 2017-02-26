@@ -102,7 +102,7 @@ public class PickaxeRevFilter extends RevFilter {
 	 */
 	public static RevFilter create(String pattern, boolean regex,
 			Repository repo) {
-		if (pattern.length() == 0)
+		if (pattern == null || pattern.length() == 0)
 			throw new IllegalArgumentException(JGitText.get().cannotMatchOnEmptyString);
 		return new PickaxeRevFilter(pattern, regex, repo);
 	}

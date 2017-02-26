@@ -152,8 +152,15 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	}
 
 	void addPickaxeRevFilter() {
+		RevFilter filter = null;
+		try {
+			filter = PickaxeRevFilter.create(pickaxePattern, pickaxeRegex,
+					db);
+		} catch (Exception e) {
+			throw die(CLIText.get().invalidRegex);
+		}
 		revLimiter
-				.add(PickaxeRevFilter.create(pickaxePattern, pickaxeRegex, db));
+				.add(filter);
 	}
 
 	@Option(name = "--max-count", aliases = "-n", metaVar = "metaVar_n")

@@ -43,13 +43,17 @@
 package org.eclipse.jgit.pgm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.CLIRepositoryTestCase;
+import org.eclipse.jgit.pgm.internal.CLIText;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,12 +67,16 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 		git = new Git(db);
 	}
 
-	@Test
-	public void basicTest() throws Exception {
-		// Write all files
+	private void commitCommonFiles() throws GitAPIException, IOException {
 		commitFiles("commit1", writeTrashFile("file1", "test"));
 		commitFiles("commit2", writeTrashFile("file2", "test2"));
 		commitFiles("commit3", writeTrashFile("file3", "test3"));
+	}
+
+	@Test
+	public void testBasicPickaxe() throws Exception {
+		// Write all files
+		commitCommonFiles();
 
 		String[] result = execute("git log -S test2");
 
@@ -76,27 +84,89 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 	}
 
 	@Test
-	public void basicRegexTest() throws Exception {
-		// Write all files
-		commitFiles("commit1", writeTrashFile("file1", "test"));
-		commitFiles("commit2", writeTrashFile("file2", "test2"));
-		commitFiles("commit3", writeTrashFile("file3", "test3"));
+	public void testBasicRegex() throws Exception {
+		commitCommonFiles();
 
 		// test\d+ should match only numbers (test2 & test3)
 		assertResultEqualsCommits(
 				execute("git log --pickaxe-regex -S test\\\\d+"), "commit3",
 				"commit2");
+	}
 
-		// same test, but different order of parameters
+	@Test
+	public void testOptionOrder() throws Exception {
+		commitCommonFiles();
+
+		// same test as testBasicRegex, but different order of parameters
 		assertResultEqualsCommits(
 				execute("git log -S test\\\\d+ --pickaxe-regex"), "commit3",
 				"commit2");
+	}
+
+	@Test
+	public void testEmptyPattern() throws Exception {
+		try {
+			execute("git log -S");
+		} catch (Die e) {
+			assertTrue(
+					e.getMessage().contains("Option \"-S\" takes an operand"));
+			return;
+		}
+		fail();
+	}
+
+	@Test
+	public void testInvalidRegexPattern() throws Exception {
+		try {
+			commitCommonFiles();
+			// try to execute with invalid regex pattern (unmatched parens)
+			execute("git log -S test\\\\d*( --pickaxe-regex");
+		} catch (Die e) {
+			assertTrue(e.getMessage().contains(CLIText.get().invalidRegex));
+			return;
+		}
+		fail();
+	}
+
+	@Test
+	public void regexTest() throws Exception {
+		// Write all files
+		commitFiles("commit1", writeTrashFile("file1", "abbcc"));
+		commitFiles("commit2", writeTrashFile("file1", "abbccdd"));
+
+		String command = "git log --pickaxe-regex -S ab{2}c{2}";
+
+		// abbcc should match only commit1 (same pattern remains in commit2)
+		assertResultEqualsCommits(execute(command), "commit1");
+
+		// abbcc should now match commit3 and commit 1 (pattern was removed in
+		// commit 3)
+		commitFiles("commit3", writeTrashFile("file1", "abbc"));
+		assertResultEqualsCommits(execute(command), "commit3", "commit1");
+
+		// restore abbccdd
+		commitFiles("commit4", writeTrashFile("file1", "abbccdd"));
+		assertResultEqualsCommits(execute(command), "commit4", "commit3",
+				"commit1");
+
+		// test a.*d, should be all commits, except the first one
+		assertResultEqualsCommits(execute("git log --pickaxe-regex -S a.*d"),
+				"commit4", "commit3", "commit2");
 
 	}
 
+	@Test
+	public void testMultilineRegex() throws Exception {
+		// Write all files
+		commitFiles("commit1", writeTrashFile("file1", "abbcc\nddeeff"));
+
+		assertResultEqualsCommits(
+				execute("git log --pickaxe-regex -S (?s)ab{2}.*c{2}.*ff"),
+				"commit1");
+
+	}
 	private void assertResultEqualsCommits(String[] result, String... commits) {
-		assertEquals(toString(getCommitMessages(result)),
-				toString(commits));
+		assertEquals(toString(commits), toString(getCommitMessages(result)));
 	}
 
 	private String[] getCommitMessages(String[] execute) {
