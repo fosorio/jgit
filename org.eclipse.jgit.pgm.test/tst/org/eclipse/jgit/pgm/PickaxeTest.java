@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2015 François Rey <eclipse.org_@_francois_._rey_._name>
+ * Copyright (C) 2017 Francisco Osorio <fosoriog@gmail.com>
  * and other copyright owners as documented in the project's IP log.
  *
  * This program and the accompanying materials are made available
@@ -126,6 +126,24 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 			return;
 		}
 		fail();
+	}
+
+	@Test
+	public void testQuotedRegexPattern() throws Exception {
+		commitCommonFiles();
+		commitFiles("commit4", writeTrashFile("file4", "test4 123"));
+		assertResultEqualsCommits(
+				execute("git log -S 'test\\d*' --pickaxe-regex"), "commit4",
+				"commit3", "commit2", "commit1");
+
+		// We have to double escape the backslashes when unquoted
+		assertResultEqualsCommits(
+				execute("git log -S test\\\\d* --pickaxe-regex"), "commit4",
+				"commit3", "commit2", "commit1");
+
+		assertResultEqualsCommits(
+				execute("git log -S 'test\\d* 123' --pickaxe-regex"),
+				"commit4");
 	}
 
 	@Test
