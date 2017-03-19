@@ -175,7 +175,7 @@ public class RevWalkPickaxeFilterTest extends RevWalkTestCase {
 
 		RevWalk revWalk = new RevWalk(repo);
 
-		RevFilter filter = PickaxeRevFilter.create(pattern, true,
+		RevFilter filter = PickaxeRevFilter.create(pattern, true, false,
 				repo);
 		assertNotNull(filter);
 		revWalk.setRevFilter(filter);

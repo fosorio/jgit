@@ -183,6 +183,33 @@ public class PickaxeTest extends CLIRepositoryTestCase {
 				"commit1");
 
 	}
+
+	@Test
+	public void testIgnoreCase() throws Exception {
+		commitFiles("commit1", writeTrashFile("file1", "abbcc\nddeeff"));
+
+		assertResultIsEmpty(execute("git log -S CC "));
+
+		assertResultEqualsCommits(execute("git log -S CC -i "),
+				"commit1");
+
+		assertResultEqualsCommits(execute("git log -S Cc -i "), "commit1");
+		assertResultEqualsCommits(execute("git log -S cc"), "commit1");
+
+		assertResultEqualsCommits(
+				execute("git log --pickaxe-regex -i -S C{2}"), "commit1");
+		assertResultEqualsCommits(execute(
+				"git log --pickaxe-regex --regexp-ignore-case -S C{2}"),
+				"commit1");
+
+		assertResultIsEmpty(execute("git log --pickaxe-regex -S CC{2}"));
+
+	}
+
+	private void assertResultIsEmpty(String[] result) {
+		assertEquals(0, getCommitMessages(result).length);
+	}
+
 	private void assertResultEqualsCommits(String[] result, String... commits) {
 		assertEquals(toString(commits), toString(getCommitMessages(result)));
 	}

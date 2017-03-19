@@ -81,6 +81,8 @@ public class PickaxeRevFilter extends RevFilter {
 
 	private Repository repo;
 
+	private boolean ignoreCase;
+
 	/**
 	 * Create a message filter.
 	 * <p>
@@ -95,24 +97,29 @@ public class PickaxeRevFilter extends RevFilter {
 	 *            regular expression pattern to match.
 	 * @param regex
 	 *            whether the pattern is a simple string or a regex
+	 * @param ignoreCase
 	 * @param repo
 	 *            The parent repository that created this RevWalk
 	 * @return a new filter that matches the given expression against the
 	 *         message body of the commit.
 	 */
 	public static RevFilter create(String pattern, boolean regex,
-			Repository repo) {
+			boolean ignoreCase, Repository repo) {
 		if (pattern == null || pattern.length() == 0)
 			throw new IllegalArgumentException(JGitText.get().cannotMatchOnEmptyString);
-		return new PickaxeRevFilter(pattern, regex, repo);
+		return new PickaxeRevFilter(pattern, regex, ignoreCase, repo);
 	}
 
-	private PickaxeRevFilter(String pattern, boolean regex, Repository repo) {
+	private PickaxeRevFilter(String pattern, boolean regex, boolean ignoreCase,
+			Repository repo) {
 		this.pattern = pattern;
 		this.regex = regex;
+		this.ignoreCase = ignoreCase;
 		this.repo = repo;
 		if (regex)
-			this.regexPattern = Pattern.compile(pattern);
+			this.regexPattern = ignoreCase
+					? Pattern.compile(pattern, Pattern.CASE_INSENSITIVE)
+					: Pattern.compile(pattern);
 	}
 
 	@Override
@@ -211,6 +218,8 @@ public class PickaxeRevFilter extends RevFilter {
 
 		// and then one can the loader to read the file
 		String str = new String(loader.getCachedBytes());
+		if (ignoreCase)
+			str = str.toLowerCase();
 
 		int count = regex ? countPattern(str) : countSubstring(str);
 
@@ -235,7 +244,8 @@ public class PickaxeRevFilter extends RevFilter {
 
 		while (lastIndex != -1) {
 
-			lastIndex = str.indexOf(pattern, lastIndex);
+			lastIndex = str.indexOf(
+					ignoreCase ? pattern.toLowerCase() : pattern, lastIndex);
 
 			if (lastIndex != -1) {
 				count++;

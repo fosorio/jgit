@@ -94,6 +94,9 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 	@Option(name = "--pickaxe-regex")
 	boolean pickaxeRegex = false;
 
+	@Option(name = "-i", aliases = { "--regexp-ignore-case" })
+	boolean ignoreCase = false;
+
 	char[] outbuffer = new char[Constants.OBJECT_ID_LENGTH * 2];
 
 	private final EnumSet<RevSort> sorting = EnumSet.noneOf(RevSort.class);
@@ -155,6 +158,7 @@ abstract class RevWalkTextBuiltin extends TextBuiltin {
 		RevFilter filter = null;
 		try {
 			filter = PickaxeRevFilter.create(pickaxePattern, pickaxeRegex,
+					ignoreCase,
 					db);
 		} catch (Exception e) {
 			throw die(CLIText.get().invalidRegex);
