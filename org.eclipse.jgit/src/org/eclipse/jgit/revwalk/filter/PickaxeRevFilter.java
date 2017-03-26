@@ -45,6 +45,7 @@ package org.eclipse.jgit.revwalk.filter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -219,7 +220,7 @@ public class PickaxeRevFilter extends RevFilter {
 		// and then one can the loader to read the file
 		String str = new String(loader.getCachedBytes());
 		if (ignoreCase)
-			str = str.toLowerCase();
+			str = str.toLowerCase(Locale.ROOT);
 
 		int count = regex ? countPattern(str) : countSubstring(str);
 
@@ -245,7 +246,8 @@ public class PickaxeRevFilter extends RevFilter {
 		while (lastIndex != -1) {
 
 			lastIndex = str.indexOf(
-					ignoreCase ? pattern.toLowerCase() : pattern, lastIndex);
+					ignoreCase ? pattern.toLowerCase(Locale.ROOT) : pattern,
+					lastIndex);
 
 			if (lastIndex != -1) {
 				count++;
