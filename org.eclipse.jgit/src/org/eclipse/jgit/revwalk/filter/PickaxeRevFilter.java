@@ -113,14 +113,19 @@ public class PickaxeRevFilter extends RevFilter {
 
 	private PickaxeRevFilter(String pattern, boolean regex, boolean ignoreCase,
 			Repository repo) {
-		this.pattern = pattern;
 		this.regex = regex;
 		this.ignoreCase = ignoreCase;
 		this.repo = repo;
 		if (regex)
+		{
 			this.regexPattern = ignoreCase
 					? Pattern.compile(pattern, Pattern.CASE_INSENSITIVE)
 					: Pattern.compile(pattern);
+		} else {
+			this.pattern = ignoreCase ? pattern.toLowerCase(Locale.ROOT)
+					: pattern;
+		}
+
 	}
 
 	@Override
@@ -138,7 +143,7 @@ public class PickaxeRevFilter extends RevFilter {
 
 		// Root commit
 		if (cmit.getParentCount() == 0) {
-			System.out.println("Testing root ");
+			// System.out.println("Testing root ");
 			return findPatternInDiff(new EmptyTreeIterator(),
 					currentCommitTreeParser);
 		}
@@ -159,8 +164,8 @@ public class PickaxeRevFilter extends RevFilter {
 					parentCommitTreeParser, currentCommitTreeParser);
 			if (findPatternInDiffInParent)
 			{
-				System.out.println("While testing " + cmit //$NON-NLS-1$
-						+ " against parent " + parentCommit + "\n");
+				// System.out.println("While testing " + cmit //$NON-NLS-1$
+				// + " against parent " + parentCommit + "\n");
 				return true;
 			}
 		}
@@ -203,12 +208,12 @@ public class PickaxeRevFilter extends RevFilter {
 
 	private void debugMatch(DiffEntry entry, int oldOcurrences,
 			int newOcurrences) {
-		System.out.println("\tfor entry " + entry);
-		System.out
-				.println("\tparent " + entry.getOldPath() + ": "
-						+ oldOcurrences);
-		System.out
-				.println("\tnew: " + entry.getNewPath() + ": " + newOcurrences);
+		// System.out.println("\tfor entry " + entry);
+		// System.out
+		// .println("\tparent " + entry.getOldPath() + ": "
+		// + oldOcurrences);
+		// System.out
+		// .println("\tnew: " + entry.getNewPath() + ": " + newOcurrences);
 	}
 
 	private int countOcurrences(AbbreviatedObjectId id)
@@ -245,9 +250,7 @@ public class PickaxeRevFilter extends RevFilter {
 
 		while (lastIndex != -1) {
 
-			lastIndex = str.indexOf(
-					ignoreCase ? pattern.toLowerCase(Locale.ROOT) : pattern,
-					lastIndex);
+			lastIndex = str.indexOf(pattern, lastIndex);
 
 			if (lastIndex != -1) {
 				count++;
