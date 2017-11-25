@@ -71,7 +71,7 @@ import org.eclipse.jgit.treewalk.EmptyTreeIterator;
  * Matches only commits whose diffs don't match in the number of occurrences of
  * the given pattern.
  *
- * @since 4.7
+ * @since 5.1
  */
 public class PickaxeRevFilter extends RevFilter {
 	private String pattern;
